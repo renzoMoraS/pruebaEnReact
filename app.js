@@ -12,7 +12,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/',function(req,res) {
-  res.write('<h1>Server Node</h1>');
+  res.write('<h1>Hola Fede, por ahora ando</h1>');
 	res.end();
 })
 
