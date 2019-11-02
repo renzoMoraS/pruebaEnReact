@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 
 const routes = express.Router();
 const bodyParser = require('body-parser');
-const cors = require('cors');
+//const cors = require('cors');
 const fetch = require('node-fetch');
 const mongoose = require('mongoose');
 const request = require('request');
@@ -25,7 +25,7 @@ var preg;
 var app = express();
 
 //Conecto las bases
-app.use(cors()); 
+//app.use(cors()); 
 app.use(bodyParser.json());
 app.use('/MLHuergo', routes); //route.routes('/algo').get(function()); = app.get('MLHuergo/algo', function());
 
