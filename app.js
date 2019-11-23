@@ -414,7 +414,7 @@ routes.route('/items/getChanges').post(function(req, res) {
                   aux._nextValue = citem._data.soldQuantity;
 
               }
-              url = 'http://localhost:4000/MLHuergo/changes/add';
+              url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/changes/add';
               fetch(url, {
                   method: 'POST',
                   body: JSON.stringify(aux),
@@ -426,7 +426,7 @@ routes.route('/items/getChanges').post(function(req, res) {
                   res.json().then(function(response){
 
                       console.log(response);
-                      url = 'http://localhost:4000/MLHuergo/items/update';
+                      url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/update';
                       fetch(url, {
 
                           method: 'POST',
@@ -489,7 +489,7 @@ app.get('/items/searchItems/:username', function(req, res) {
           var items = data;
           items.results.map(function(item){
             
-            url = 'http://localhost:4000/MLHuergo/items/searchItemId/' + item.id
+            url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/searchItemId/' + item.id
             fetch(url,options)
               .then(function(resp){
                   resp.json().then(function(res){
@@ -517,7 +517,7 @@ app.get('/items/searchItems/:username', function(req, res) {
                           }
           
                           };
-                          url = 'http://localhost:4000/MLHuergo/items/add';
+                          url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/add';
                           fetch(url, {
                               method: 'POST',
                               body: JSON.stringify(obj),
@@ -583,7 +583,7 @@ app.post('/items/startFollowing',function(req,rest){
           res.map(function(aux){
               item._lastUpdate = aux.body.last_updated;
           });
-          url = 'http://localhost:4000/MLHuergo/items/update';
+          url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/update';
           fetch(url, {
 
               method: 'POST',
@@ -686,7 +686,7 @@ routes.route('/FollSell/add').post(function(req, res) {
       }
       
   }
-  url = 'http://localhost:4000/MLHuergo/FollSell/searchName/' + req.body._name;
+  url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/FollSell/searchName/' + req.body._name;
   fetch(url, options)
    .then(resp =>{
 
@@ -700,7 +700,7 @@ routes.route('/FollSell/add').post(function(req, res) {
                   response.map(function(prod){
 
                       var body = {item: JSON.stringify(prod), sell: true};
-                      url = 'http://localhost:4000/MLHuergo/items/startFollowing';
+                      url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/startFollowing';
                       fetch(url, {
 
                           method: 'POST',
@@ -979,7 +979,7 @@ app.get('/TenCat', function general(reqDeFE, resAFE){ //Tendencias por Categorí
       var catTime = [30];
       let today = new Date();
       let date = today.getDate() + "-"+ parseInt(today.getMonth()+1) +"-"+today.getFullYear();
-      fetch('http://localhost:4000/MLHuergo/CatTend', {
+      fetch('https://pruebaenreact.azurewebsites.net/MLHuergo/CatTend', {
 
                       method: "GET",
                       headers: {
@@ -1021,7 +1021,7 @@ app.get('/TenCat', function general(reqDeFE, resAFE){ //Tendencias por Categorí
                   total += catTime[i]._cant; 
                   //total = cantidad de unidades venididas TOTALES (todas las categorías)
                   
-                  fetch('http://localhost:4000/MLHuergo/CatTend/add', { 
+                  fetch('https://pruebaenreact.azurewebsites.net/MLHuergo/CatTend/add', { 
                   
                       method: 'POST',
                       body: JSON.stringify(catTime[i]),
