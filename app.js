@@ -1135,9 +1135,11 @@ routes.route('/CatTime/delete').post(function(req, res) {
 });
 
 app.post('/preguntas',function(reqDeFE, resAFE){
-  preg = new meli.Meli(token.client_id, token.client_secret, token.access_token, token.refresh_token);
-  contador = 0;
-  preg.get('/my/received_questions/search', function (err, res) {
+    var token = reqDeFE.body.token;
+    token = JSON.parse(token);
+    preg = new meli.Meli(token.client_id, token.client_secret, token.access_token, token.refresh_token);
+    contador = 0;
+    preg.get('/my/received_questions/search', function (err, res) {
 
       var jsonpreg = JSON.stringify(res);
       var pregparse = JSON.parse(jsonpreg);
