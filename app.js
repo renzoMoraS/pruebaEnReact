@@ -161,59 +161,62 @@ app.post('/pantallaInicio', function(reqv, resv) {
   }
 })
 
-app.get('/ventasEnOrden',function(req,res){
+app.post('/ventasEnOrden',function(req,res){
 
-  console.log("Entró");
-  var fecha = new Date();
-  //var fechaprime = //2015-07-01
-  var ytoday = fecha.getFullYear();
-  var mtoday = fecha.getMonth();
-  var dtoday = fecha.getDate();
-  var hasta = ytoday + "-" + mtoday + "-" + dtoday
-  console.log(hasta)
-  var desde = "2015-01-01"
-  console.log(req);
+    var token = req.body.token;
+    token = JSON.parse(token);
+    console.log("Entró");
+    var fecha = new Date();
+    //var fechaprime = //2015-07-01
+    var ytoday = fecha.getFullYear();
+    var mtoday = fecha.getMonth();
+    var dtoday = fecha.getDate();
+    var hasta = ytoday + "-" + mtoday + "-" + dtoday
+    console.log(hasta)
+    var desde = "2015-01-01"
+    console.log(req);
 
-  if (req.query.hasta != null){
-      hasta = req.query.hasta
-      hasta = hasta.substring(0,10) 
+    if (req.body.hasta != null){
+        hasta = req.body.hasta
+        hasta = hasta.substring(0,10) 
 
-  }
-  if (req.query.desde != null){
-      desde = req.query.desde
-      desde = desde.substring(0,10) 
-  }
+    }
+    if (req.body.desde != null){
+        desde = req.body.desde
+        desde = desde.substring(0,10) 
+    }
 
-  var murl = "https://api.mercadolibre.com/orders/search?seller="+ token.user_id +"&order.date_created.from=" + desde + "T00:00:00.000-00:00&order.date_created.to="+ hasta +"T00:00:00.000-00:00&access_token="+token.access_token;
-  console.log(murl)
-  request.get({url: murl}, function (error, response, body) {
-      var orders = JSON.parse(body);
-      //var ordersString = JSON.stringify(orders)
-      //console.log(orders)
-      res.send(orders)
-  })
-  /*console.log("Entró");
-  var fecha = new Date();
-  console.log(fecha.toLocaleDateString(undefined, {
-      weekday: 'long',    
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-  }))
-  //var fechaprime = //2015-07-01
-  var year = fecha.getUTCFullYear();
-  var month = fecha.getUTCMonth();
-  var day = fecha.getUTCDay();
-  var fechaactual = fecha.getUTCFullYear();
-  var murl = "https://api.mercadolibre.com/orders/search?seller="+ token.user_id +"&order.date_created.from=2015-07-01T00:00:00.000-00:00&order.date_created.to="+ fechaactual +"-12-31T00:00:00.000-00:00&access_token="+token.access_token;
-  request.get({url: murl}, function (error, response, body) {
-      var orders = JSON.parse(body);
-      var ordersString = JSON.stringify(orders)
-      console.log(orders)
-      res.send(orders)
-  })*/
+    var murl = "https://api.mercadolibre.com/orders/search?seller="+ token.user_id +"&order.date_created.from=" + desde + "T00:00:00.000-00:00&order.date_created.to="+ hasta +"T00:00:00.000-00:00&access_token="+token.access_token;
+    console.log(murl)
+    request.get({url: murl}, function (error, response, body) {
+        var orders = JSON.parse(body);
+        //var ordersString = JSON.stringify(orders)
+        //console.log(orders)
+        res.send(orders)
+    })
+    /*console.log("Entró");
+    var fecha = new Date();
+    console.log(fecha.toLocaleDateString(undefined, {
+        weekday: 'long',    
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    }))
+    //var fechaprime = //2015-07-01
+    var year = fecha.getUTCFullYear();
+    var month = fecha.getUTCMonth();
+    var day = fecha.getUTCDay();
+    var fechaactual = fecha.getUTCFullYear();
+    var murl = "https://api.mercadolibre.com/orders/search?seller="+ token.user_id +"&order.date_created.from=2015-07-01T00:00:00.000-00:00&order.date_created.to="+ fechaactual +"-12-31T00:00:00.000-00:00&access_token="+token.access_token;
+    request.get({url: murl}, function (error, response, body) {
+        var orders = JSON.parse(body);
+        var ordersString = JSON.stringify(orders)
+        console.log(orders)
+        res.send(orders)
+    })*/
 
 })
+
 
 
 routes.route('/items').get(function(req, res) {
