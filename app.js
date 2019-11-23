@@ -33,6 +33,7 @@ var corsMiddleware = function(req, res, next) {
     next();
 }
 app.use(corsMiddleware);
+app.use(express.static(path.join(__dirname, 'public')));
 var url;
 
 mongoose.connect('mongodb://157.92.32.246:27017/MLHuergo', { useNewUrlParser: true });
@@ -1317,5 +1318,3 @@ app.post('/MPublis',function(reqDeFE,resAFE) {
           })
       }) //esto saca los productos del usuario
   })
-
-module.exports = app;
