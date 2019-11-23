@@ -1178,6 +1178,7 @@ app.post('/preguntas',function(reqDeFE, resAFE){
 
 })  
 
+
 var arreglo = [];
 var contador = 0;
 function laotrafuncionquequiererenzo(parametro) {
@@ -1188,23 +1189,23 @@ function lafuncionquequiererenzo(parametro) {
         //eljason[0] = arreglo
         
         // console.log(arreglo)
-        console.log(arreglo)
+        //console.log(arreglo)
         parametro.send(arreglo)
         arreglo = []
 }
 app.post('/MPublis',function(reqDeFE,resAFE) {
-      var preg = new meli.Meli(token.client_id, token.client_secret,token.access_token,token.refresh_token);
-      preg.get('/users/me', function (err, resu){
-          //console.log(err, resu);
-          jsonstr = JSON.stringify(resu);
-          pubspars = JSON.parse(jsonstr);
+        var preg = new meli.Meli(token.client_id, token.client_secret,token.access_token,token.refresh_token);
+        preg.get('/users/me', function (err, resu){
+        //console.log(err, resu);
+        jsonstr = JSON.stringify(resu);
+        pubspars = JSON.parse(jsonstr);
   
-          preg.get('/users/'+pubspars.id+'/items/search', function (err, resi) {// sin parametros devuelve todos los items de un usuario
+        preg.get('/users/'+pubspars.id+'/items/search', function (err, resi) {// sin parametros devuelve todos los items de un usuario
                   //console.log(err, resi);
                   //resAFE.send(resi);
                   jsonstrprod = JSON.stringify(resi);
                   listmisprod = JSON.parse(jsonstrprod)
-                  console.log(listmisprod)
+                  //console.log(listmisprod)
                   
                   // Recorro los items del usuario
                   var c;
@@ -1216,20 +1217,24 @@ app.post('/MPublis',function(reqDeFE,resAFE) {
                   preg.get('/items/' + value, function (err, resmp){
                       resmpstrin = JSON.stringify(resmp);
                       resmppar = JSON.parse(resmpstrin);
+                      console.log(resmppar)
                     //   var listaDatos = [resmpstrin]
-                      // fs.writeFile('listaprod.json', resmpstrin, function (error) {
-                      //     if (error) throw err;
-                      // });
+                       //fs.appendFile('listaprod.json', resmpstrin, function (error) {
+                           //if (error) throw err;
+                       //});
                       preg.get('/sites/MLA/search',
                               {q:resmp.title }, 
                               function (err, respuesta) {
-                                  
+                                  copia_de_resp = respuesta.results.unshift(resmp);
                                   contador = contador + 1;
                                 //   jsonstrto = JSON.stringify(resi);
                                 //   toparse = JSON.parse(resi);
                                 //   console.log(toparse)
-                                 console.log(JSON.parse(JSON.stringify(respuesta)))
+                                 //console.log(JSON.parse(JSON.stringify(respuesta)))
                                   arreglo.push(respuesta)
+                                  //fs.writeFile('resultadobusqueda.json',JSON.stringify(respuesta), function (error) {
+                                    //if (error) throw err;
+                                //});
                                 //   listaDatos.push(toparse)
                                   // fs.appendFile('listaprod.json', jsonstrto, function (error) {
                                   //     if (error) throw err;
@@ -1245,6 +1250,8 @@ app.post('/MPublis',function(reqDeFE,resAFE) {
           })
       }) //esto saca los productos del usuario
   })
+
+
 
 
 // catch 404 and forward to error handler
