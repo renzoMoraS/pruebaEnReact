@@ -1134,7 +1134,7 @@ routes.route('/CatTime/delete').post(function(req, res) {
 
 });
 
-app.get('/preguntas',function(reqDeFE, resAFE){
+app.post('/preguntas',function(reqDeFE, resAFE){
   preg = new meli.Meli(token.client_id, token.client_secret, token.access_token, token.refresh_token);
   contador = 0;
   preg.get('/my/received_questions/search', function (err, res) {
