@@ -1192,7 +1192,7 @@ function lafuncionquequiererenzo(parametro) {
         parametro.send(arreglo)
         arreglo = []
 }
-var publis = app.post('/MPublis',function(reqDeFE,resAFE) {
+app.post('/MPublis',function(reqDeFE,resAFE) {
       var preg = new meli.Meli(token.client_id, token.client_secret,token.access_token,token.refresh_token);
       preg.get('/users/me', function (err, resu){
           //console.log(err, resu);
