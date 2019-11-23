@@ -1318,3 +1318,5 @@ app.post('/MPublis',function(reqDeFE,resAFE) {
           })
       }) //esto saca los productos del usuario
   })
+
+  module.exports = app;
