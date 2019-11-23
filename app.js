@@ -1193,7 +1193,10 @@ function lafuncionquequiererenzo(parametro) {
         parametro.send(arreglo)
         arreglo = []
 }
+
 app.post('/MPublis',function(reqDeFE,resAFE) {
+        var token = reqDeFE.body.token;
+        token = JSON.parse(token);
         var preg = new meli.Meli(token.client_id, token.client_secret,token.access_token,token.refresh_token);
         preg.get('/users/me', function (err, resu){
         //console.log(err, resu);
