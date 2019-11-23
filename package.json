@@ -41,6 +41,7 @@
     "react-scripts": "3.0.1",
     "reactstrap": "^8.0.1",
     "url-search-params": "^1.1.0",
-    "path": "0.12.7"
+    "path": "0.12.7",
+    "universal-cookie": "4.0.2"
   }
 }
