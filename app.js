@@ -61,24 +61,24 @@ app.post('/token',function(req,rest){
 
   // Opciones que voy a tener que usar al momento de hacer el pedido del Token por mensaje POST.
 
-var options = {
+    var options = {
 
-    url:'https://api.mercadolibre.com/oauth/token',
-    method: "POST",
-    headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
-    }
+        url:'https://api.mercadolibre.com/oauth/token',
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json'
+        }
 
-};
-var url = req.body.url;
-request.post({url: url, json:true, options},function(req,res,body){
+    };
+    var url = req.body.url;
+    request.post({url: url, json:true, options},function(req,res,body){
 
-    token = body
-    preg = new meli.Meli(token.client_id, token.client_secret, token.access_token, token.refresh_token);
-    rest.send(token)
-    
-})
+        token = body
+        preg = new meli.Meli(token.client_id, token.client_secret, token.access_token, token.refresh_token);
+        rest.send(token)
+
+    })
 
 })
 
@@ -341,24 +341,25 @@ routes.route('/items/searchSeller/:seller').get(function(req, res) {
 });
 
 routes.route('/items/getFollowed').get(function(req, res) {
+    var real = [];
+    var token = req.body.token;
+    token = JSON.parse(token);
+    Item.find().byUser(token.user_id).exec(function(err, item) {
 
-  var real = [];
-  Item.find().byUser(token.user_id).exec(function(err, item) {
+        if(err)
+            res.status(400).json(err)
+        else{
 
-      if(err)
-          res.status(400).json(err)
-      else{
+            Item.find().byUser("Todos").exec(function(errt, itemt) {
 
-          item.map(function(citem, i){
+                item.push(itemt[0]);
+                res.status(200).json(item);
+            
+            })
 
-              if(citem._following == true) real.push(citem);
+        }
 
-          })
-          res.status(200).json(real);
-
-      }
-
-  });
+    });
 
 });
 
@@ -558,58 +559,117 @@ app.get('/items/searchItems/:username', function(req, res) {
 
 app.post('/items/startFollowing',function(req,rest){
   
-  var item = req.body.item;
-  console.log(item);
-  item = JSON.parse(item);
-  var id = item._itemId;
-  var follsell = req.body.sell;
-  var url = 'https://api.mercadolibre.com/items?ids=' + id + '&access_token=' + token.access_token;
-  var options = {
+    var citem = req.body.item;
+    citem = JSON.parse(citem);
+    var token = req.body.token;
+    token = JSON.parse(token);
+    var Id = citem.Id;
+    var url = 'https://api.mercadolibre.com/items?ids=' + Id + '&access_token=' + token.access_token;
+    var options = {
 
-      method: "GET",
-      headers: {
+        method: "GET",
+        headers: {
+      
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json' 
+      
+        }
+      
+    };
+    fetch(url,options)
+      .then(function(response){ 
+
+        response.json()
+          .then(function(data) {
+            
+            url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/searchItemId/' + Id;
+            fetch(url,options)
+                .then(function (response){
+
+                    response.json().then(resp => {
+                        
+                        console.log(resp);
+                        console.log(JSON.stringify(resp));
+                        var item;
+                        item = {
     
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json' 
+                            _user: token.user_id,
+                            _itemId: Id,
+                            _name: citem.Nombre,
+                            _seller: citem.Vendedor,
+                            _lastUpdate: '',
+                            _data: {
+                                
+                                _price: citem.Precio,
+            
+                            }
+            
+                        }
+                        data.map(function(aux){
+                            item._lastUpdate = aux.body.last_updated;
+                        });
+                        if(!isEmptyObject(resp)){
+
+                            resp = resp[0];
+                            if(!resp._user.includes(item._user)){
     
-      }
+                                var itemAux = [];
+                                itemAux.push(resp._user[0]);
+                                itemAux.push(item._user);
+                                item._user = itemAux;
+                                console.log(item);
+                                url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/update';
+                                fetch(url, {
+                    
+                                    method: 'POST',
+                                    body: JSON.stringify(item),
+                                    headers:{
+                                        'Content-Type': 'application/json',
+                                    }
+                    
+                                }).then(function(res){ 
+                    
+                                    rest.status(200).json({'message': "Item seguido exitosamente."});
+                    
+                                })
+
+                            }
     
-  };
-  if(!follsell) item._following = true;
-  fetch(url,options)
-    .then(function(response){ 
+                        }else if(resp._user === undefined || !resp._user.includes(item._user)){
+    
+                            console.log('response._user');
+                            url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/add';
+                            fetch(url, {
+                
+                                method: 'POST',
+                                body: JSON.stringify(item),
+                                headers:{
+                                    'Content-Type': 'application/json',
+                                }
+                
+                            }).then(function(res){ 
+                
+                                rest.status(200).json({'message': "Item seguido exitosamente."});
+                
+                            })
+    
+                        }else rest.status(200).json({'message': "Ya habia seguido este item."});
 
-      response.json()
-        .then(function(data) {
+                    });
+                    
+        
+                  })
+                  .catch(function(error) {
+                    console.log('Fetch Error:', error);
+                  });
 
-          var res = data;
-          res.map(function(aux){
-              item._lastUpdate = aux.body.last_updated;
-          });
-          url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/update';
-          fetch(url, {
+                })
 
-              method: 'POST',
-              body: JSON.stringify(item),
-              headers:{
-                  'Content-Type': 'application/json',
-              }
 
-          }).then(function(res){ 
-
-              rest.status(200).json({'message': "Item seguido exitosamente."});
-
-              })
-
-        })
-        .catch(function(error) {
-          console.log('Fetch Error:', error);
-        });
-
-    })
-    .catch(function(error) {
-      console.log('Fetch Error:', error);
-    });
+      })
+      .catch(function(error) {
+        console.log('Fetch Error:', error);
+      });
   
 })
 
