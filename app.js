@@ -365,94 +365,109 @@ routes.route('/items/getFollowed').get(function(req, res) {
 
 routes.route('/items/getChanges').post(function(req, res) {
 
-  var citem = req.body.citem;
-  citem = JSON.parse(citem);
-  var id = citem._itemId;
-  Item.find().byItemId(id).exec(function(err, item) {
+    var citem = req.body.citem;
+    citem = JSON.parse(citem);
+    var token = req.body.token;
+    token = JSON.parse(token);
+    var id = citem._itemId;
+    Item.find().byItemId(id).exec(function(err, item) {
 
-      if(err)
-          res.status(400).json(err)
-      else{
+        if(err)
+            res.status(400).json(err)
+        else{
 
-          item = item[0];
-          if(item._lastUpdate != citem._lastUpdate){
+            item = item[0];
+            if(item._itemId == "MLA1234567") citem._name += "2";
+            url = 'https://api.mercadolibre.com/items?ids=' + id + '&access_token=' + token.access_token;
+            fetch(url,{
 
-              var aux = {
-                  "_itemId": citem._itemId,
-                  "_field": "",
-                  "_prevValue": "",
-                  "_nextValue": ""
-              }
-              if(item._name != citem._name){
+                method: "GET",
+                headers: {
+              
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'Accept': 'application/json' 
+              
+                }
+              
+            }).then(function(rest){ 
 
-                  aux._field = "Nombre";
-                  aux._prevValue = item._name;
-                  aux._nextValue = citem._name;
+                rest.json()
+                .then(function(data) {
+                
+                    rest = data[0].body;
+                    if(data[0].code == 200){
 
-              }
-              if(item._data.price != citem._data.price){
-                  
-                  aux._field = "Precio";
-                  aux._prevValue = item._data.price;
-                  aux._nextValue = citem._data.price;
+                        citem._name = rest.title;
+                        citem._data._price = rest.price;
+                        citem._lastUpdate = rest.last_updated;
 
-              }
-              if(item._data.currency != citem._data.currency){
+                    }
 
-                  aux._field = "Moneda";
-                  aux._prevValue = item._data.currency;
-                  aux._nextValue = citem._data.currency;
+                    console.log(item._lastUpdate != citem._lastUpdate);
+                    if(item._lastUpdate != citem._lastUpdate){
 
-              }
-              if(item._data.availableQuantity != citem._data.availableQuantity){
-                  
-                  aux._field = "Cantidad disponible";
-                  aux._prevValue = item._data.availableQuantity;
-                  aux._nextValue = citem._data.availableQuantity;
+                        var aux = {
+                            _itemId: citem._itemId,
+                            _field: "",
+                            _prevValue: "",
+                            _nextValue: ""
+                        }
+                        if(item._name != citem._name){
+        
+                            aux._field = "Nombre";
+                            aux._prevValue = item._name;
+                            aux._nextValue = citem._name;
+        
+                        }
+                        if(item._data.price != citem._data.price){
+                            
+                            aux._field = "Precio";
+                            aux._prevValue = item._data.price;
+                            aux._nextValue = citem._data.price;
+        
+                        }
+                        url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/changes/add';
 
-              }
-              if(item._data.soldQuantity != citem._data.soldQuantity){
-                  
-                  aux._field = "Cantidad vendida";
-                  aux._prevValue = item._data.soldQuantity;
-                  aux._nextValue = citem._data.soldQuantity;
+                        fetch(url, {
+                            method: 'POST',
+                            body: JSON.stringify(aux),
+                            headers:{
+                                'Content-Type': 'application/json',
+                            }
+                        })
+                        .then(function(rest){ 
+        
+                            rest.json().then(function(response){
+        
+                                console.log(response);
+                                url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/update';
+                                fetch(url, {
+        
+                                    method: 'POST',
+                                    body: JSON.stringify(citem),
+                                    headers:{
+                                        'Content-Type': 'application/json',
+                                    }
+        
+                                }).then(function(rest){ 
+        
+                                    rest.status(200).json({'message': "Item modificado exitosamente."});
+        
+                                })
+        
+                            }
+        
+                        )})
+        
+                    }else res.status(200).json(item);
 
-              }
-              url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/changes/add';
-              fetch(url, {
-                  method: 'POST',
-                  body: JSON.stringify(aux),
-                  headers:{
-                      'Content-Type': 'application/json',
-                  }
-              })
-              .then(function(res){ 
-                  res.json().then(function(response){
+                });
+ 
+            });
 
-                      console.log(response);
-                      url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/update';
-                      fetch(url, {
+        }
 
-                          method: 'POST',
-                          body: JSON.stringify(citem),
-                          headers:{
-                              'Content-Type': 'application/json',
-                          }
-
-                      }).then(function(res){ 
-
-                          rest.status(200).json({'message': "Item modificado exitosamente."});
-
-                          })
-                      }
-
-              )})
-
-          }else res.status(200).json(item);
-
-      }
-
-  });
+    });
 
 });
 
@@ -470,90 +485,48 @@ routes.route('/items/delete/:seller').post(function(req, res) {
 
 app.get('/items/searchItems/:username', function(req, res) {
 
-  let username = req.params.username;
-  var url = 'https://api.mercadolibre.com/sites/MLA/search?nickname=' + username + '&offset=50';
-  var options = {
+    let username = req.params.username;
+    var url = 'https://api.mercadolibre.com/sites/MLA/search?nickname=' + username + '&offset=50';
+    var options = {
 
-      method: "GET",
-      headers: {
+        method: "GET",
+        headers: {
+      
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json' 
+      
+        }
+      
+      };
     
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json' 
-    
-      }
-    
-    };
-  
-  fetch(url,options)
-    .then(function(response){ 
+    fetch(url,options)
+      .then(function(response){ 
 
-      response.json()
-        .then(function(data) {
-          
-          var items = data;
-          items.results.map(function(item){
-            
-            url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/searchItemId/' + item.id
-            fetch(url,options)
-              .then(function(resp){
-                  resp.json().then(function(res){
+        response.json()
+          .then(function(data) {
 
-                      if(!isEmptyObject(res)) 
-                          return;
-                      else{
+            var items = [];
+            data.results.map(citem => {
 
-                          var obj = {
+                items.push({
 
-                          "_itemId": item.id,
-                          "_name": item.title,
-                          "_link": item.permalink,
-                          "_user": token.user_id,
-                          "_seller": username,
-                          "_following": false,
-                          "_lastUpdate": "No necesario",
-                          "_data": {
-          
-                              "price": item.price,
-                              "currency": item.currency_id,
-                              "availableQuantity": item.available_quantity,
-                              "soldQuantity": item.sold_quantity
-          
-                          }
-          
-                          };
-                          url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/add';
-                          fetch(url, {
-                              method: 'POST',
-                              body: JSON.stringify(obj),
-                              headers:{
-                                  'Content-Type': 'application/json',
-                              }
-                          })
-                          .then(function(res){ 
-                              res.json().then(function(response){
-                              res.status(200).json(response)
-                              }
-                          )})
-                          return obj;
+                    Id: citem.id,
+                    Link: citem.permalink,
+                    Nombre: citem.title,
+                    Precio: citem.price,
+                    Vendedor: username
 
-                      }
+                })
 
-                  })
-
-              .catch(function(error) {
-                  console.log('Fetch Error:', error);
-                });
-
-              });
+            })
+            res.status(200).json(items);
 
           })
+          .catch(function(error) {
+            console.log('Fetch Error:', error);
+          });
 
-        })
-        .catch(function(error) {
-          console.log('Fetch Error:', error);
-        });
-
-  });
+    });
 
 });
 
@@ -584,7 +557,7 @@ app.post('/items/startFollowing',function(req,rest){
         response.json()
           .then(function(data) {
             
-            url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/searchItemId/' + Id;
+            url = 'http://localhost:4000/MLHuergo/items/searchItemId/' + Id;
             fetch(url,options)
                 .then(function (response){
 
@@ -637,7 +610,7 @@ app.post('/items/startFollowing',function(req,rest){
                                 itemAux.push(resp._user[0]);
                                 itemAux.push(item._user);
                                 item._user = itemAux;
-                                url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/update';
+                                url = 'http://localhost:4000/MLHuergo/items/update';
                                 fetch(url, {
                     
                                     method: 'POST',
@@ -656,7 +629,7 @@ app.post('/items/startFollowing',function(req,rest){
     
                         }else if(resp._user === undefined || !resp._user.includes(item._user)){
     
-                            url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/add';
+                            url = 'http://localhost:4000/MLHuergo/items/add';
                             fetch(url, {
                 
                                 method: 'POST',
@@ -738,6 +711,57 @@ routes.route('/changes/add').post(function(req, res) {
 
 });
 
+routes.route('/changes/getMine').post(function(req, res) {
+
+    let aux;
+    let changesId = req.body.itemId;
+    console.log(changesId);
+    changesId.map(function(id, i){
+
+        Change.find().byItemId(id).exec(function(err, item) {
+
+            if(isEmptyObject(item)) item = [{_itemId: id, _field: null}];
+            if(i > 0) {
+
+                setTimeout(function(){
+
+                    if(err)
+                        res.status(400).json(err)
+                    else{
+
+                        item.map(function(me){
+
+                            aux.push(me);
+
+                        })
+        
+                    }
+    
+                }, 500)    
+
+            }else{
+
+                if(err)
+                    res.status(400).json(err)
+                else{
+
+                    aux = item;
+    
+                }
+
+            }
+            
+        });
+        
+    });
+    setTimeout(function(){
+
+        res.status(200).json(aux);
+
+    }, 2000)
+
+});
+
 routes.route('/FollSell').get(function(req, res) {
 
   FollSell.find(function(err, item) {
@@ -756,69 +780,82 @@ routes.route('/FollSell').get(function(req, res) {
 
 routes.route('/FollSell/add').post(function(req, res) {
 
-  var options = {
+    var token = req.body.token;
+    token = JSON.parse(token);
+    var auxUsr = [];
+    var aux = {
 
-      method: "GET",
-      headers: {
+        _user: token.user_id,
+        _name: req.body.name,
+
+    }
+    var options = {
+
+        method: "GET",
+        headers: {
+        
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json' 
+        
+        }
+        
+    }
+    url = 'http://localhost:4000/items/searchItems/' + aux._name;
+    fetch(url, options)
+    .then(item => {item.json().then(items => {
+        
+        items.map(function(item){
+
+            console.log(item);
+            fetch('http://localhost:4000/items/startFollowing', { 
       
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json' 
-      
-      }
-      
-  }
-  url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/FollSell/searchName/' + req.body._name;
-  fetch(url, options)
-   .then(resp =>{
+                method: 'POST',
+                body: JSON.stringify({
 
-      if(resp.size != 0) return;
-      let follSell = new FollSell(req.body);
-      follSell.save()
-          .then(item => {
+                    sell: "yes",
+                    item: JSON.stringify(item),
+                    token: JSON.stringify(token)
 
-              Item.find().bySeller(item._name).exec(function(err, response){
+                }),
+                headers:{
+                  'Content-Type': 'application/json',
+                }
+            
+            })
 
-                  response.map(function(prod){
+        })
+    
+    })})
+    /*url = 'http://localhost:4000/MLHuergo/FollSell/searchName/' + aux._name;
+    fetch(url, options)
+     .then(resp =>{
+        resp.json().then(rest => {
+            
+            //if(!isEmptyObject(rest)) res.status(200).json({"message": "Ya habia seguido a este usuario."});  
+            auxUsr.push(rest[0]._user);
+            auxUsr.push(aux._user);
+            aux._user = auzUsr;
+            let follSell = new FollSell(aux);
+            follSell.save()
+                .then(item => {
+    
+                    res.status(200).json({'message': "Usuario seguido exitosamente."});
+    
+                })
+                .catch(err => {
+    
+                    res.status(400).send('adding new item failed');
+        
+                });
+    
+            })    
+        })  */
 
-                      var body = {item: JSON.stringify(prod), sell: true};
-                      url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/startFollowing';
-                      fetch(url, {
+     .catch(err => {
 
-                          method: 'POST',
-                          body: body,
-                          headers:{
-                              'Content-Type': 'application/json',
-                          }
+        res.status(400).send('adding new item failed');
 
-                      }).then(res=>{})
-                      .catch(function(res){console.log(res)})});
-
-              })
-              .then(function(resp){ 
-
-                  resp.status(200).json({'message': "Usuario seguido exitosamente."});
-
-              })
-              .catch(err => {
-
-                  res.status(400).send('adding new item failed');
-      
-              });
-              //res.status(200).json({'ofsel': 'item added successfully'});
-
-          })
-          .catch(err => {
-
-              res.status(400).send('adding new item failed');
-
-          });
-      })        
-
-   .catch(err => {
-
-      res.status(400).send('adding new item failed');
-
-   });
+     });
 
 });
 
@@ -876,19 +913,41 @@ routes.route('/FollSell/searchName/:name').get(function(req, res) {
 
 });
 
-routes.route('/FollSell/searchForMe').get(function(req, res) {
+routes.route('/FollSell/searchForMe').post(function(req, res) {
 
-  let name = req.params.name;
-  FollSell.find().byUser(token.user_id).exec(function(err, item) {
+    var token = req.body.token;
+    console.log(token);
+    token = JSON.parse(token);
+    FollSell.find().byUser(token.user_id).exec(function(err, item) {
 
-      if(err)
-          res.status(400).log(err)
-      else{
-          res.status(200).json(item);
-              
-      }
+        console.log(item);
+        if(err)
+            res.status(400).log(err)
+        else{
+            res.status(200).json(item);
+                
+        }
 
-  });
+    });
+
+});
+
+routes.route('/FollSell/items/:seller').get(function(req, res) {
+
+    var token = req.body.token;
+    console.log(token);
+    token = JSON.parse(token);
+    FollSell.find().byUser(token.user_id).exec(function(err, item) {
+
+        console.log(item);
+        if(err)
+            res.status(400).log(err)
+        else{
+            res.status(200).json(item);
+                
+        }
+
+    });
 
 });
 
