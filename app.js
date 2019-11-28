@@ -557,7 +557,7 @@ app.post('/items/startFollowing',function(req,rest){
         response.json()
           .then(function(data) {
             
-            url = 'http://localhost:4000/MLHuergo/items/searchItemId/' + Id;
+            url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/searchItemId/' + Id;
             fetch(url,options)
                 .then(function (response){
 
@@ -610,7 +610,7 @@ app.post('/items/startFollowing',function(req,rest){
                                 itemAux.push(resp._user[0]);
                                 itemAux.push(item._user);
                                 item._user = itemAux;
-                                url = 'http://localhost:4000/MLHuergo/items/update';
+                                url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/update';
                                 fetch(url, {
                     
                                     method: 'POST',
@@ -629,7 +629,7 @@ app.post('/items/startFollowing',function(req,rest){
     
                         }else if(resp._user === undefined || !resp._user.includes(item._user)){
     
-                            url = 'http://localhost:4000/MLHuergo/items/add';
+                            url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/add';
                             fetch(url, {
                 
                                 method: 'POST',
@@ -800,14 +800,14 @@ routes.route('/FollSell/add').post(function(req, res) {
         }
         
     }
-    url = 'http://localhost:4000/items/searchItems/' + aux._name;
+    url = 'https://pruebaenreact.azurewebsites.net/items/searchItems/' + aux._name;
     fetch(url, options)
     .then(item => {item.json().then(items => {
         
         items.map(function(item){
 
             console.log(item);
-            fetch('http://localhost:4000/items/startFollowing', { 
+            fetch('https://pruebaenreact.azurewebsites.net/items/startFollowing', { 
       
                 method: 'POST',
                 body: JSON.stringify({
@@ -826,7 +826,7 @@ routes.route('/FollSell/add').post(function(req, res) {
         })
     
     })})
-    /*url = 'http://localhost:4000/MLHuergo/FollSell/searchName/' + aux._name;
+    /*url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/FollSell/searchName/' + aux._name;
     fetch(url, options)
      .then(resp =>{
         resp.json().then(rest => {
