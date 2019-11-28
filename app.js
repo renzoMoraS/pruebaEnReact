@@ -558,8 +558,10 @@ app.get('/items/searchItems/:username', function(req, res) {
 });
 
 app.post('/items/startFollowing',function(req,rest){
-  
+    
+    var sell = req.body.sell;
     var citem = req.body.item;
+    console.log(citem);
     citem = JSON.parse(citem);
     var token = req.body.token;
     token = JSON.parse(token);
@@ -587,23 +589,41 @@ app.post('/items/startFollowing',function(req,rest){
                 .then(function (response){
 
                     response.json().then(resp => {
-                        
-                        console.log(resp);
-                        console.log(JSON.stringify(resp));
+
                         var item;
-                        item = {
-    
-                            _user: token.user_id,
-                            _itemId: Id,
-                            _name: citem.Nombre,
-                            _seller: citem.Vendedor,
-                            _lastUpdate: '',
-                            _data: {
-                                
-                                _price: citem.Precio,
-            
+                        if(sell === undefined){
+
+                            item = {
+        
+                                _user: token.user_id,
+                                _itemId: Id,
+                                _name: citem.Nombre,
+                                _seller: citem.Vendedor,
+                                _lastUpdate: '',
+                                _data: {
+                                    
+                                    _price: citem.Precio,
+                
+                                }
+                
                             }
-            
+
+                        }else{
+
+                            item = {
+
+                                _itemId: Id,
+                                _name: citem.Nombre,
+                                _seller: citem.Vendedor,
+                                _lastUpdate: '',
+                                _data: {
+                                    
+                                    _price: citem.Precio,
+                
+                                }
+                
+                            }
+
                         }
                         data.map(function(aux){
                             item._lastUpdate = aux.body.last_updated;
@@ -611,13 +631,12 @@ app.post('/items/startFollowing',function(req,rest){
                         if(!isEmptyObject(resp)){
 
                             resp = resp[0];
-                            if(!resp._user.includes(item._user)){
+                            if(!resp._user.includes(item._user) && sell !== undefined){
     
                                 var itemAux = [];
                                 itemAux.push(resp._user[0]);
                                 itemAux.push(item._user);
                                 item._user = itemAux;
-                                console.log(item);
                                 url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/update';
                                 fetch(url, {
                     
@@ -637,7 +656,6 @@ app.post('/items/startFollowing',function(req,rest){
     
                         }else if(resp._user === undefined || !resp._user.includes(item._user)){
     
-                            console.log('response._user');
                             url = 'https://pruebaenreact.azurewebsites.net/MLHuergo/items/add';
                             fetch(url, {
                 
@@ -670,7 +688,7 @@ app.post('/items/startFollowing',function(req,rest){
       .catch(function(error) {
         console.log('Fetch Error:', error);
       });
-  
+    
 })
 
 routes.route('/changes').get(function(req, res) {
