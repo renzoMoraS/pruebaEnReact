@@ -1426,7 +1426,7 @@ function enviarEnUnRatitoVendedoresPorCat(response, dato) {
     response.send([categorias,cant_por_categoria])
 }
 
-app.get('/VenCat', function general(reqDeFE, resAFE){ //Vendedores x Categoría
+app.post('/VenCat', function general(reqDeFE, resAFE){ //Vendedores x Categoría
     var cantVendxCat = []; //esta es la fija
     var cantidad_categorias = 0
     var preg = new meli.Meli(token.client_id, token.client_secret,token.access_token,token.refresh_token);
