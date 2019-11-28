@@ -140,6 +140,9 @@ app.post('/valoraciones', function(reqv, resv) {
 
 app.post('/pantallaInicio', function(reqv, resv) {
 
+    var token = req.body.token;
+    token = JSON.parse(token);
+
   if(token===undefined || token.error) {
       console.log('pongo acá todo el token porque me parece que no tiene el token')
       console.log(token)
@@ -414,7 +417,7 @@ routes.route('/items/searchItemId/:id').get(function(req, res) {
 
 });
 
-routes.route('/items/searchSeller/:seller').get(function(req, res) {
+routes.route('/items/searchSeller/:seller').post(function(req, res) {
 
   let seller = req.params.seller;
   Item.find().bySeller(seller).exec(function(err, item) {
