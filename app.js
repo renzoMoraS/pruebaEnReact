@@ -433,7 +433,7 @@ routes.route('/items/searchSeller/:seller').get(function(req, res) {
 
 });
 
-routes.route('/items/getFollowed').post(function(req, res) {
+routes.route('/items/getFollowed').get(function(req, res) {
     var real = [];
     var token = req.body.token;
     token = JSON.parse(token);
