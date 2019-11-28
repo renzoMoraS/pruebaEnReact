@@ -140,9 +140,6 @@ app.post('/valoraciones', function(reqv, resv) {
 
 app.post('/pantallaInicio', function(reqv, resv) {
 
-    var token = req.body.token;
-    token = JSON.parse(token);
-
   if(token===undefined || token.error) {
       console.log('pongo acá todo el token porque me parece que no tiene el token')
       console.log(token)
