@@ -576,7 +576,7 @@ routes.route('/items/delete/:seller').post(function(req, res) {
 
 });
 
-app.get('/items/searchItems/:username', function(req, res) {
+app.post('/items/searchItems/:username', function(req, res) {
 
     let username = req.params.username;
     var url = 'https://api.mercadolibre.com/sites/MLA/search?nickname=' + username + '&offset=50';
