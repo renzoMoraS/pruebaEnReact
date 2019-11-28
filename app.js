@@ -161,6 +161,99 @@ app.post('/pantallaInicio', function(reqv, resv) {
   }
 })
 
+function calculateCaTend(objs, leng){
+
+    var hoyTotal = 0;
+    var proporcion;
+    var propTotal = 0;
+    var toReturn = []; //toReturn.push(val);
+    var catMax = [];
+    var catNormal = [];
+    //var totalOtrasCat = 0;
+    var otraCategoria = [];
+    var acortar;
+    objs.map(function(cat, i){
+        //console.log(cat)
+        if (cat._cant != undefined || cat._cant != null) {
+            hoyTotal += cat._cant;
+            //console.log('entró al if')
+        }
+        //console.log(hoyTotal, 'hoytotal')
+    })
+    
+    objs.map(function(cat, i){
+        //calculo de proporcionalidad
+        proporcion = 0;
+        if (hoyTotal > 0) {
+            proporcion = (cat._cant * 100) / hoyTotal
+        }
+        
+        propTotal += proporcion;
+
+        acortar = (JSON.stringify(proporcion)).substring(0, 4);
+
+        //catMax = acortar.slice(0,30) PC A MATY ESTOY ARREGLANDO ESTO
+        //catNormal = acortar.slice(31, 60)
+
+        toReturn.push(acortar);
+        otraCategoria.push(otraCategoria); //Envio al frontend los DATOS de las categorías menos vendidas (20)
+    })
+    
+    /*catMax = toReturn.slice(0,30) PC A MATY ESTOY ARREGLANDO ESTO 
+    catMax = catMax.sort(function(a, b) {
+        return b - a;
+    });
+    catNormal = toReturn.slice(31, 60)
+    catNormal = catNormal.sort(function(a, b) {
+        return b - a;
+    });
+    console.log(catMax)
+    console.log(catNormal)
+    console.log(catMax - catNormal)*/
+
+    toReturn = toReturn.slice(leng - 30, leng) //ignoro el primero y agarro los proxs. 30
+    //catMax = toReturn.slice(leng - 30, leng)
+    lista_categorias_ordenadas_sin_duplicados = objs.slice(1,31)
+    toReturnOrdenado = toReturn.sort(function(a, b) {
+        return b - a;
+    });
+
+    lista_categorias_ordenadas_como_objetos = lista_categorias_ordenadas_sin_duplicados.sort(function ordenar_nombres_por_cantidad(a, b){ 
+        return b._cant > a._cant ?  1 
+        : b._cant < a._cant ? -1 
+        : 0;
+    })
+    
+    lista_categorias_ordenadas = [];
+
+    lista_categorias_ordenadas_como_objetos.map(function(cat, i){
+        lista_categorias_ordenadas.push(cat._name) //Envio al frontend los NOMBRES de las 10 categorías más vendidas
+    })            
+
+    var lista_categorias_ordenadasSolo10 = lista_categorias_ordenadas.slice(0,10)
+    lista_categorias_ordenadasSolo10.push('Otros') //Envio al frontend el NOMBRE de la sección que almacena el resto de las categorías
+
+    var toReturnSolo10 = toReturn.slice(0,10) //Recolecto los DATOS de las 10 categorías más vendidas
+    otraCategoria = toReturnOrdenado.slice(10, 30) //Recolecto los DATOS restantes ordenados
+    var totalDeOtros = 0
+
+    otraCategoria.map(function (valor, i){
+         console.log(valor)
+         totalDeOtros = totalDeOtros + parseFloat(valor);
+    })
+    
+    toReturnSolo10.push((totalDeOtros.toString()).substring(0, 4)) //Envio al frontend los DATOS de las 10 categorías más vendidas
+    //toReturnSolo10.push(10);
+    
+    console.log(toReturnSolo10);
+    console.log(otraCategoria);
+
+    otraCategoria = JSON.stringify(otraCategoria);
+    console.log('LISTO')
+    return [toReturnSolo10,lista_categorias_ordenadasSolo10];
+    
+}
+
 app.post('/ventasEnOrden',function(req,res){
 
     var token = req.body.token;
@@ -965,353 +1058,534 @@ routes.route('/FollSell/delete/:name').post(function(req, res) {
 
 routes.route('/CatSell').get(function(req, res) {
 
-  CatSell.find(function(err, item) {
+    CatSell.find(function(err, item) {
 
-      if (err){ 
+        if (err){ 
 
-          res.status(400).json(err);
-          return 0;
+            res.status(400).json(err);
+            return 0;
 
-      }else
-          res.status(200).json(item);
+        }else
+            res.status(200).json(item);
 
-  });
+    });
 
 });
 
 routes.route('/CatSell/add').post(function(req, res) {
 
-  let catSell = new CatSell(req.body);
-  catSell.save()
-      .then(item => {
+    let catSell = new CatSell(req.body);
+    catSell.save()
+        .then(item => {
 
-          res.status(200).json({'ofsel': 'item added successfully'});
+            res.status(200).json({'ofsel': 'item added successfully'});
 
-      })
-      .catch(err => {
+        })
+        .catch(err => {
 
-          res.status(400).send('adding new item failed');
+            res.status(400).send('adding new item failed');
 
-      });
+        });
 
 });
 
 routes.route('/CatSell/searchName/:name').get(function(req, res) {
 
-  let name = req.params.name;
-  CatSell.find().byName(name).exec(function(err, item) {
+    let name = req.params.name;
+    CatSell.find().byName(name).exec(function(err, item) {
 
-      if(err)
-          console.status(400).log(err)
-      else{
+        if(err)
+            console.status(400).log(err)
+        else{
 
-          if(isEmptyObject(item))
-              res.status(404).json({error: 'Nonexistent item.'})
-          else
-              res.status(200).json(item);
-              
-      }
+            if(isEmptyObject(item))
+                res.status(404).json({error: 'Nonexistent item.'})
+            else
+                res.status(200).json(item);
+                
+        }
 
-  });
+    });
 
 });
 
 routes.route('/CatSell/delete').post(function(req, res) {
 
-  CatSell.deleteMany({_id: "5d1506238069d42b5837cdd1"}, function(err) {
+    CatSell.deleteMany({_id: "5d1506238069d42b5837cdd1"}, function(err) {
 
-      if(err) console.log(err);
-      res.status(200).json({item: "Eliminado con exito"});
+        if(err) console.log(err);
+        res.status(200).json({item: "Eliminado con exito"});
 
-  });
+    });
 
 });
 
 routes.route('/CatTend').get(function(req, res) {
 
-  CatTend.find(function(err, item) {
+    CatTend.find(function(err, item) {
 
-      if (err){ 
+        if (err){ 
 
-          console.log(err);
-          return 0;
+            console.log(err);
+            return 0;
 
-      }else
-          res.json(item);
+        }else
 
-  });
+            res.json(item);
+
+    });
 
 });
 
 routes.route('/CatTend/add').post(function(req, res) {
 
-  let catTend = new CatTend(req.body);
-  catTend.save()
-      .then(item => {
+    let catTend = new CatTend(req.body);
+    catTend.save()
+        .then(item => {
 
-          res.status(200).json({'ofsel': 'item added successfully'});
+            res.status(200).json({'ofsel': 'item added successfully'});
 
-      })
-      .catch(err => {
+        })
+        .catch(err => {
 
-          res.status(400).send('adding new item failed');
+            res.status(400).send('adding new item failed');
 
-      });
+        });
 
 });
 
 
 routes.route('/CatTend/checkedToday').get(function(req, res) {
 
-  var today = new Date;
-  CatTend.find().byDay(today).exec(function(err, item) {
+    var today = new Date;
+    CatTend.find().byDay(today).exec(function(err, item) {
 
-      if(err)
-          console.status(400).log(err)
-      else{
+        if(err)
+            console.status(400).log(err)
+        else{
 
-          if(isEmptyObject(item))
-              res.status(400).json({error: 'Nonexistent item.'})
-          else
-              res.status(200).json(item);
-              
-      }
+            if(isEmptyObject(item))
+                res.status(400).json({error: 'Nonexistent item.'})
+            else
+                res.status(200).json(item);
+                
+        }
 
-  });
+    });
 
 });
 
 routes.route('/CatTend/searchName/:name').get(function(req, res) {
+    //si agrego (ejemplo) /:name == /Otras Categorias // NO FUNCIONA
+    //devuelve todos los items de esa categoría
+    let name = req.params.name;
+    CatTend.find().byName(name).exec(function(err, item) {
 
-  let name = req.params.name;
-  CatTend.find().byName(name).exec(function(err, item) {
+        if(err)
+            console.status(400).log(err)
+        else{
 
-      if(err)
-          console.status(400).log(err)
-      else{
+            if(isEmptyObject(item))
+                res.status(404).json({error: 'Nonexistent item.'})
+            else
+                res.status(200).json(item);
+                
+        }
 
-          if(isEmptyObject(item))
-              res.status(404).json({error: 'Nonexistent item.'})
-          else
-              res.status(200).json(item);
-              
-      }
-
-  });
+    });
 
 });
 
 routes.route('/CatTend/delete').post(function(req, res) {
 
-  CatTend.deleteMany({__v: 0}, function(err) {
+    CatTend.deleteMany({__v: 0}, function(err) {
 
-      if(err) console.log(err);
-      res.status(200).json({item: "Eliminado con exito"});
+        if(err) console.log(err);
+        res.status(200).json({item: "Eliminado con exito"});
 
-  });
+    });
 
 });
 
-app.get('/TenCat', function general(reqDeFE, resAFE){ //Tendencias por Categoría
-  
-  preg.get('/sites/MLA/categories', function(err, res){  
+routes.route('/CatTend/update').post(function(req, res){
 
-      var catTime = [30];
-      let today = new Date();
-      let date = today.getDate() + "-"+ parseInt(today.getMonth()+1) +"-"+today.getFullYear();
-      fetch('https://pruebaenreact.azurewebsites.net/MLHuergo/CatTend', {
+    let id = req.body._name;
+    CatTend.updateOne({_name: id}, {
+        
+        $set: { 
 
-                      method: "GET",
-                      headers: {
-                  
-                          'Content-Type': 'application/x-www-form-urlencoded',
-                          'Accept': 'application/json' 
-                  
-                      }
-              
-      }).then(function(resp) {resp.json().then(function(res){
+            "_name": req.body._name,
+            "_day": req.body._day,
+            "_cant": req.body._cant,
 
-          if(res.body[res.length - 1]._date == date){ //Si ya se consiguieron los datos de hoy...
+        },
 
-              //calcular % de ventas acá
-              console.log("Ya tenemos datos actualizados")
-              resAFE.status(200).json(res);
+    }, function(err, resp){ 
+        if(err) 
+            console.log(err);
+        else
+            res.status(200).json({mensaje:"Actualizacion completada"});
 
-          }
-          //Conseguir la cantidad de ventas de hoy
-          var total = 0;
-          res.map(function(item, i){
-              
-              catTime[i] = {
-  
-                  _name: item.name,
-                  _day: date,
-                  _cant: 0
-  
-              } 
-              // de aca en adelante, una vez por día en algun otro lado
-  
-              preg.get('/sites/MLA/search', {category: [item.id]}, function(err, res){
-                  var cont = 0;
-                  res.results.map(function(producto, x){
-                  
-                      catTime[i]._cant += producto.sold_quantity;
-  
-                  })
-                  total += catTime[i]._cant; 
-                  //total = cantidad de unidades venididas TOTALES (todas las categorías)
-                  
-                  fetch('https://pruebaenreact.azurewebsites.net/MLHuergo/CatTend/add', { 
-                  
-                      method: 'POST',
-                      body: JSON.stringify(catTime[i]),
-                      headers:{
-                          'Content-Type': 'application/json',
-                      }
-  
-                  })
-                  .then(function(res){ 
-  
-  
-                  }).catch(function(error) {
-                      console.log('Fetch Error:', error);
-                  });
-                  
-              })
-                      
-          })
-      
-      })})
+    })
 
-  })
+});
+
+app.post('/TenCat', function general(reqDeFE, resAFE){ //Tendencias por Categoría
+
+    var token = reqDeFE.body.token;
+    token = JSON.parse(token);
+    
+    var catTime = [30];
+    let today = new Date();
+    
+    let date = today.getDate() + "-"+ parseInt(today.getMonth()+1) +"-"+today.getFullYear();
+    fetch('https://pruebaenreact.azurewebsites.net/MLHuergo/CatTend', {
+
+        method: "GET",
+        headers: {
+    
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json' 
+    
+        }
+            
+    })
+    .then(function(resp) {resp.json().then(function(rest){
+
+        console.log(rest);
+        var len = rest.length - 1;
+        var catTimeMax;
+        var preg = new meli.Meli(token.client_id, token.client_secret, token.access_token, token.refresh_token);
+        //console.log(preg)
+        preg.get('/sites/MLA/categories', function(err, res){
+            
+            console.log('parece que hizo la pregunta de categories')
+            var total = 0;
+            res.map(function(item, i){
+                
+                catTime[i] = {
+    
+                    _name: item.name,
+                    _day: date,
+                    _cant: 0
+                    
+                }
+                // de aca en adelante, una vez por día en algun otro lado
+                //console.log(preg)
+                preg.post('/sites/MLA/search', {category: [item.id]}, function(err, res){
+
+                    var token = reqDeFE.body.token;
+                    token = JSON.parse(token);
+
+                    var cont = 0;
+                    res.results.map(function(producto, x){
+                        catTime[i]._cant += producto.sold_quantity;
+                    })
+
+                    //console.log(res.results.seller.id);
+                    total += catTime[i]._cant; 
+                    catTimeMax = catTime[i];
+                    //total = cantidad de unidades vendidas TOTALES (todas las categorías)
+
+                    console.log('')
+                    console.log('lo de abajo agrega Max a todas las categorías')
+                    catTimeMax._name += "Max";
+                    catTime[i]._cant = catTimeMax._cant - rest[i]._cant;
+                    console.log(catTime[i]._cant)
+                    fetch('https://pruebaenreact.azurewebsites.net/MLHuergo/CatTend/update', { 
+
+                        method: 'POST',
+                        body: JSON.stringify(catTime[i]),
+                        headers:{
+                            'Content-Type': 'application/json',
+                        }
+    
+                    })
+                    .then(function(res){ 
+
+                        fetch('https://pruebaenreact.azurewebsites.net/MLHuergo/CatTend/update', { 
+
+                            method: 'POST',
+                            body: JSON.stringify(catTimeMax),
+                            headers:{
+                                'Content-Type': 'application/json',
+                            }
+        
+                        })
+                        .then(function(res){ 
+        
+                            resAFE.status(200).json(calculateCaTend(rest));
+
+                        }).catch(function(error) {
+                            console.log('Fetch Error:', error);
+                        });
+
+                    }).catch(function(error) {
+                        console.log('Fetch Error:', error);
+                    });
+                        
+                })
+                    
+            })
+
+        })
+
+    }).catch(function(error) {
+        console.log('Fetch Error:', error);
+    });
+        /*if(date == rest[rest.length - 1]._day) {
+            
+            /*var aux = catTime.slice(1, 30); 
+            //catTime = catTime.slice(1, 30); 
+            console.log(aux)
+            rest.map(function(resta, i){
+                console.log(aux[i])
+                //console.log(catTime)                        
+            })*/
+            
+            console.log(catTime._cant)
+
+            //console.log('')
+            //console.log(rest + ' respuesta de rest limpia')
+            //console.log('')
+            //console.log(rest[len]._day + ' respuesta de rest modificado')
+            //console.log('')
+            //console.log(date)
+            /*resAFE.status(200).json(calculateCaTend(rest, len));
+            
+        }else{
+            
+            preg.get('/sites/MLA/categories', function(err, res){
+                console.log('parece que hizo la pregunta de categories')
+                var total = 0;
+                res.map(function(item, i){
+                    
+                    catTime[i] = {
+        
+                        _name: item.name,
+                        _day: date,
+                        _cant: 0
+                        
+                    }
+                    // de aca en adelante, una vez por día en algun otro lado
+                    preg.get('/sites/MLA/search', {category: [item.id]}, function(err, res){
+                        var cont = 0;
+                        res.results.map(function(producto, x){
+                            catTime[i]._cant += producto.sold_quantity;
+                        })
+                        //console.log(res.results.seller.id);
+                        total += catTime[i]._cant; 
+                        //total = cantidad de unidades vendidas TOTALES (todas las categorías)
+    
+                            console.log('')
+                            console.log('lo de abajo agrega Max a todas las categorías')
+                            catTime[i]._name += "Max";
+                                
+                            fetch('https://pruebaenreact.azurewebsites.net/MLHuergo/CatTend/update', { 
+                                method: 'POST',
+                                body: JSON.stringify(catTime[i]),
+                                headers:{
+                                    'Content-Type': 'application/json',
+                                }
+            
+                            })
+                            .then(function(res){ 
+            
+                            }).catch(function(error) {
+                                console.log('Fetch Error:', error);
+                            });
+                            
+                        /*}).catch(function(error) {
+                            console.log('Fetch Error:', error);
+                        });*/
+                        
+                    /*})
+                })
+                resAFE.status(200).json(calculateCaTend(rest));
+            })
+            .catch(function(error) {
+                    console.log('Fetch Error:', error);
+            });
+            
+        }*/
+        console.log('')
+        console.log('salí del fetch')
+    
+    })
 
 })
 
+function enviarEnUnRatitoVendedoresPorCat(response, dato) {
+    let cant_por_categoria = []
+    let categorias = Object.keys(dato).map(function (key) { 
+        cant_por_categoria.push(dato[key])
+        console.log(dato[key])
+        return key;
+    });
+
+    response.send([categorias,cant_por_categoria])
+}
+
+app.get('/VenCat', function general(reqDeFE, resAFE){ //Vendedores x Categoría
+    var cantVendxCat = []; //esta es la fija
+    var cantidad_categorias = 0
+    var preg = new meli.Meli(token.client_id, token.client_secret,token.access_token,token.refresh_token);
+    var lista_de_categorias_con_cant_vendedores = {};
+    preg.get('/sites/MLA/categories', function(err, res){
+        //console.log(res)
+        res.map(function(categoria, i){
+
+            var listaTemporal = [];
+            lista_de_categorias_con_cant_vendedores[categoria.name] = 0 // Inicializo en 0 el contador de la categoría
+            
+            preg.get('/sites/MLA/search', {category: [categoria.id]}, function(err, resp){
+                resp.results.map(function(producto,j) {
+
+                    let idSeller = producto.seller.id;
+                
+                    if (listaTemporal.includes(idSeller)) {
+                        
+                    } else {
+                        listaTemporal.push(idSeller); // Mete el seller id en la lista temporal, sólo si no está ya creado.
+                        lista_de_categorias_con_cant_vendedores[categoria.name] = lista_de_categorias_con_cant_vendedores[categoria.name] + 1 // Sumo 1 al contador de vendedores de la categoría
+                    }
+                });
+            })
+        })
+    })
+
+    setTimeout(enviarEnUnRatitoVendedoresPorCat,10000,resAFE, lista_de_categorias_con_cant_vendedores)
+    console.log(lista_de_categorias_con_cant_vendedores)
+    
+})
+
+
 routes.route('/CatTime').get(function(req, res) {
 
-  CatTime.find(function(err, item) {
+    CatTime.find(function(err, item) {
 
-      if (err){ 
+        if (err){ 
 
-          console.log(err);
-          return 0;
+            console.log(err);
+            return 0;
 
-      }else
-          res.json(item);
+        }else
+            res.json(item);
 
-  });
+    });
 
 });
 
 routes.route('/CatTime/add').post(function(req, res) {
 
-  let catTime = new CatTime(req.body);
-  catTime.save()
-      .then(item => {
+    let catTime = new CatTime(req.body);
+    catTime.save()
+        .then(item => {
 
-          res.status(200).json({'ofsel': 'item added successfully'});
+            res.status(200).json({'ofsel': 'item added successfully'});
 
-      })
-      .catch(err => {
+        })
+        .catch(err => {
 
-          res.status(400).send('adding new item failed');
+            res.status(400).send('adding new item failed');
 
-      });
+        });
 
 });
 
 routes.route('/CatTime/searchName/:name').get(function(req, res) {
 
-  let name = req.params.name;
-  CatTime.find().byName(name).exec(function(err, item) {
+    let name = req.params.name;
+    CatTime.find().byName(name).exec(function(err, item) {
 
-      if(err)
-          console.log(err)
-      else{
+        if(err)
+            console.log(err)
+        else{
 
-          if(isEmptyObject(item))
-              res.json({error: 'Nonexistent item.'})
-          else
-              res.json(item);
-              
-      }
+            if(isEmptyObject(item))
+                res.json({error: 'Nonexistent item.'})
+            else
+                res.json(item);
+                
+        }
 
-  });
+    });
 
 });
 
 routes.route('/CatTime/searchDate/:date').get(function(req, res) {
 
-  let date = req.params.date;
-  CatTime.find().byName(date).exec(function(err, item) {
+    let date = req.params.date;
+    CatTime.find().byName(date).exec(function(err, item) {
 
-      if(err)
-          console.log(err)
-      else{
+        if(err)
+            console.log(err)
+        else{
 
-          if(isEmptyObject(item))
-              res.json({error: 'Nonexistent item.'})
-          else
-              res.json(item);
-              
-      }
+            if(isEmptyObject(item))
+                res.json({error: 'Nonexistent item.'})
+            else
+                res.json(item);
+                
+        }
 
-  });
+    });
 
 });
 
 routes.route('/CatTime/delete').post(function(req, res) {
 
-  CatTime.deleteMany({_id: "5d1506238069d42b5837cdd1"}, function(err) {
+    CatTime.deleteMany({_id: "5d1506238069d42b5837cdd1"}, function(err) {
 
-      if(err) console.log(err);
-      res.json({item: "Eliminado con exito"});
+        if(err) console.log(err);
+        res.json({item: "Eliminado con exito"});
 
-  });
+    });
 
 });
 
 app.post('/preguntas',function(reqDeFE, resAFE){
     var token = reqDeFE.body.token;
     token = JSON.parse(token);
+    
     preg = new meli.Meli(token.client_id, token.client_secret, token.access_token, token.refresh_token);
     contador = 0;
     preg.get('/my/received_questions/search', function (err, res) {
 
-      var jsonpreg = JSON.stringify(res);
-      var pregparse = JSON.parse(jsonpreg);
-      
-      pregparse.questions.map(function(pregunta, index){ //por cada pregunta de questions pregunta por su usuario de ML 
-          
-          preg.get('/users/' + pregunta.from.id, function (err, res){    
+        var jsonpreg = JSON.stringify(res);
+        var pregparse = JSON.parse(jsonpreg);
+        
+        pregparse.questions.map(function(pregunta, index){ //por cada pregunta de questions pregunta por su usuario de ML 
+            
+            preg.get('/users/' + pregunta.from.id, function (err, res){    
 
-              pregparse.questions[index].nombre_de_usuario = res.nickname;
-              contador = contador + 1;
-              if (contador >= pregparse.questions.length * 2) {
+                pregparse.questions[index].nombre_de_usuario = res.nickname;
+                contador = contador + 1;
+                if (contador >= pregparse.questions.length * 2) {
 
-                  resAFE.send(pregparse)
-                  return
+                    resAFE.send(pregparse)
+                    return
 
-              }
+                }
 
-          })
-          
-          preg.get('items', {ids: [pregunta.item_id,]}, function (err, res){
+            })
+            
+            preg.get('items', {ids: [pregunta.item_id,]}, function (err, res){
 
-              pregparse.questions[index].producto_nombre = res[0].body.title;
-              contador = contador + 1;
-              if (contador >= pregparse.questions.length * 2) {
+                pregparse.questions[index].producto_nombre = res[0].body.title;
+                contador = contador + 1;
+                if (contador >= pregparse.questions.length * 2) {
 
-                  resAFE.send(pregparse)
-                  return
+                    resAFE.send(pregparse)
+                    return
 
-              }
+                }
 
-          })
+            })
 
-      })
-      
-  })
+        })
+        
+    })
 
 })  
 
